@@ -1,16 +1,14 @@
 package models
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"net/http"
+	"log"
+	// "io/ioutil"
 )
 
-var db *gorm.DB
-
-type UserModel struct {
+type User struct {
 	ID           uint    `gorm:"primary_key"`
 	Username     string  `gorm:"column:username"`
 	Email        string  `gorm:"column:email;unique_index"`
@@ -19,13 +17,16 @@ type UserModel struct {
 	PasswordHash string  `gorm:"column:password;not null"`
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	var user UserModel
-	err := json.NewDecoder(r.Body).Decode(&user)
-	fmt.Println(err)
+type Model struct {
+	DB *gorm.DB
+}
 
-	db.Create(&user)
+func (User) TableName() string {
+	return "user_models"
+}
+
+func (m Model) CreateUser(user User) {
+	m.DB.Create(&user)
+	log.Print(user)
 	fmt.Println("Endpoint Hit: Creating New User")
-	json.NewEncoder(w).Encode(user)
 }

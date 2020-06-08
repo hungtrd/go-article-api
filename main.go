@@ -3,15 +3,20 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"net/http"
+
+	"go-article/controllers"
+	"go-article/models"
 )
 
 var db *gorm.DB
 var err error
+
+var user User
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to HomePage!")
@@ -26,7 +31,7 @@ func handleRequests() {
 
 	// Route
 	myRouter.HandleFunc("/", homePage)
-	// myRouter.HandleFunc("/users", UserModel.CreateUser).Methods("POST")
+	myRouter.HandleFunc("/users", controllers.CreateUser).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":5000", myRouter))
 }
