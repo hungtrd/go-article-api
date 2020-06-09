@@ -10,13 +10,10 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 
 	"go-article/controllers"
-	"go-article/models"
 )
 
 var db *gorm.DB
 var err error
-
-var user User
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to HomePage!")
@@ -31,19 +28,18 @@ func handleRequests() {
 
 	// Route
 	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/users", controllers.CreateUser).Methods("POST")
+
+	// User
+	myRouter.HandleFunc("/api/users/login", controllers.UserLogin).Methods("POST")
+	myRouter.HandleFunc("/api/users", controllers.CreateUser).Methods("POST")
+	myRouter.HandleFunc("/api/users", controllers.ListUser).Methods("GET")
+
+	// Article
+	myRouter.HandleFunc("/api/articles", controllers.ListUser).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":5000", myRouter))
 }
 
 func main() {
-	db, err = gorm.Open("mysql", "root:hungtran97@tcp(127.0.0.1:3307)/go_article?charset=utf8&parseTime=True")
-
-	if err != nil {
-		log.Println("Connection Failed")
-	} else {
-		log.Println("Connection Established")
-	}
-
 	handleRequests()
 }

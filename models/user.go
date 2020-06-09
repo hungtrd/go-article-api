@@ -1,11 +1,13 @@
 package models
 
 import (
-	"fmt"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"html"
 	"log"
-	// "io/ioutil"
+	"strings"
+
+	"golang.org/x/crypto/bcrypt"
+
+	"go-article/databases"
 )
 
 type User struct {
@@ -17,16 +19,54 @@ type User struct {
 	PasswordHash string  `gorm:"column:password;not null"`
 }
 
-type Model struct {
-	DB *gorm.DB
-}
-
 func (User) TableName() string {
 	return "user_models"
 }
 
-func (m Model) CreateUser(user User) {
-	m.DB.Create(&user)
+func Hash(pass string) (string, error) {
+	byte, err := bcrypt.GenerateFromPassword([]byte(pass), 10)
+	return string(byte), err
+}
+
+func CheckPasswordHash(hashedpass, pass string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedpass), []byte(pass))
+}
+
+func Santize(data string) string {
+	data = html.EscapeString(strings.TrimSpace(data))
+	return data
+}
+
+func CreateUser(user *User) {
+	// Trim & Santize string
+	user.Username = Santize(user.Username)
+	user.Email = Santize(user.Email)
+	user.Bio = Santize(user.Bio)
+	user.PasswordHash, _ = Hash(Santize(user.PasswordHash))
+
+	// Save User
+	DB := db.ConnectDB()
+	DB.Create(&user)
+
 	log.Print(user)
-	fmt.Println("Endpoint Hit: Creating New User")
+}
+
+func CheckUserExist(username string) bool {
+	DB := db.ConnectDB()
+	var users []User
+	DB.Table("user_models").Where("username = ? ", username).Find(&users)
+
+	if len(users) > 0 {
+		return true
+	} else {
+		return false
+	}
+}
+
+func ListUser() *[]User {
+	DB := db.ConnectDB()
+	var user []User
+	DB.Table("user_models").Find(&user)
+
+	return &user
 }
