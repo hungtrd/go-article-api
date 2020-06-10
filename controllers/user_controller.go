@@ -140,7 +140,7 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := models.FindUserByUsername(username)
+	user, _ := models.FindUserByUsername(username)
 
 	// Reset Token Exp
 	token, _ := ulti.CreateJwt(user)

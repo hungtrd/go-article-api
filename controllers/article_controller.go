@@ -12,7 +12,7 @@ import (
 
 func CreateArticle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Println("Endpoint Hit: Creating New User")
+	fmt.Println("Endpoint Hit: Creating New Article")
 
 	var article models.ArticleRequestParam
 	err := json.NewDecoder(r.Body).Decode(&article)
@@ -39,8 +39,12 @@ func CreateArticle(w http.ResponseWriter, r *http.Request) {
 	username, errJwt := ulti.CheckJwt(r)
 
 	if errJwt != nil {
-		ulti.FindUserByUsername(username)
-		models.CreateArticle(article, user_id)
+		user, err := models.FindUserByUsername(username)
+
+		if err != nil {
+			user_id := user.ID
+			models.CreateArticle(article, user_id)
+		}
 	}
 
 }

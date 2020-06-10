@@ -37,7 +37,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/api/user", controllers.GetCurrentUser).Methods("GET")
 
 	// Article
-	myRouter.HandleFunc("/api/articles", controllers.ListUser).Methods("POST")
+	myRouter.HandleFunc("/api/articles", controllers.CreateArticle).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":5000", myRouter))
 }

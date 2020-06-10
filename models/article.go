@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"go-article/databases"
-	"go-article/ulti"
 )
 
 type Article struct {
@@ -33,7 +32,7 @@ func (Article) TableName() string {
 func CreateArticle(article ArticleRequestParam, author_id uint) {
 	var articleModel Article
 	// Trim & Santize string
-	articleModel.Slug = ulti.Santize(article.Slug)
+	articleModel.Slug = Santize(article.Slug)
 	articleModel.Title = Santize(article.Title)
 	articleModel.Description = Santize(article.Description)
 	articleModel.Body = Santize(article.Body)
