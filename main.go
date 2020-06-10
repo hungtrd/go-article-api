@@ -33,6 +33,8 @@ func handleRequests() {
 	myRouter.HandleFunc("/api/users/login", controllers.UserLogin).Methods("POST")
 	myRouter.HandleFunc("/api/users", controllers.CreateUser).Methods("POST")
 	myRouter.HandleFunc("/api/users", controllers.ListUser).Methods("GET")
+	// Get Current User
+	myRouter.HandleFunc("/api/user", controllers.GetCurrentUser).Methods("GET")
 
 	// Article
 	myRouter.HandleFunc("/api/articles", controllers.ListUser).Methods("POST")

@@ -51,6 +51,15 @@ func CreateUser(user *User) {
 	log.Print(user)
 }
 
+func FindUserByUsername(username string) (User, error) {
+	var user User
+
+	DB := db.ConnectDB()
+	err := DB.Where("username = ?", username).First(&user).Error
+
+	return user, err
+}
+
 func CheckUserExist(username string) bool {
 	DB := db.ConnectDB()
 	var users []User
