@@ -41,6 +41,9 @@ func CheckJwt(r *http.Request) (string, error) {
 		return []byte(os.Getenv("SECRET_JWT")), nil
 	})
 
+	log.Println("Token Data: ", token)
+	log.Println("Token Error: ", err)
+
 	if err != nil {
 		return username, err
 	}
@@ -48,6 +51,8 @@ func CheckJwt(r *http.Request) (string, error) {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		username = fmt.Sprintf("%v", claims["username"])
 	}
+
+	log.Println("Username", username)
 
 	return username, nil
 }

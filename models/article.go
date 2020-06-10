@@ -29,7 +29,7 @@ func (Article) TableName() string {
 	return "articles"
 }
 
-func CreateArticle(article ArticleRequestParam, author_id uint) {
+func CreateArticle(article ArticleRequestParam, author_id uint) (Article, error) {
 	var articleModel Article
 	// Trim & Santize string
 	articleModel.Slug = Santize(article.Slug)
@@ -40,9 +40,11 @@ func CreateArticle(article ArticleRequestParam, author_id uint) {
 	articleModel.CreatedAt = time.Now()
 	articleModel.UpdatedAt = time.Now()
 
-	// Save User
+	// Save Article
 	DB := db.ConnectDB()
-	DB.Create(&articleModel)
+	err := DB.Create(&articleModel).Error
 
 	log.Println(articleModel)
+
+	return articleModel, err
 }

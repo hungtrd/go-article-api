@@ -39,11 +39,21 @@ func CreateArticle(w http.ResponseWriter, r *http.Request) {
 	username, errJwt := ulti.CheckJwt(r)
 
 	if errJwt != nil {
+		err := ulti.ResponseError{
+			StatusCode: 401,
+			Message:    "Unauthorized!",
+		}
+		ulti.SendResponseError(w, err)
+		return
+	} else {
 		user, err := models.FindUserByUsername(username)
 
 		if err != nil {
 			user_id := user.ID
-			models.CreateArticle(article, user_id)
+			arti, err := models.CreateArticle(article, user_id)
+			if err != nil {
+				ulti.SendResponseData(w, arti)
+			}
 		}
 	}
 
