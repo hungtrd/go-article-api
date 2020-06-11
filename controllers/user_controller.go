@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"go-article/models"
-	"go-article/ulti"
+	"go-article/util"
 )
 
 type LoginRequest struct {
@@ -23,34 +23,34 @@ type LoginResponse struct {
 	Token    string  `json:"token"`
 }
 
-func UserLogin(w http.ResponseWriter, r *http.Request) {
+func (c Controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 	var loginParam LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&loginParam)
 
 	if err != nil {
-		err := ulti.ResponseError{
+		err := util.ResponseError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Invalid Format!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 		log.Println("Error: ", err)
 		return
 	}
 
 	if loginParam.Username == "" || loginParam.Password == "" {
-		err := ulti.ResponseError{
+		err := util.ResponseError{
 			StatusCode: 411,
 			Message:    "Username and Password can't be blank!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 		log.Println("Error: ", err)
 		return
 	}
 
-	user, err := ulti.CheckLogin(loginParam.Username, loginParam.Password)
+	user, err := c.CheckLogin(loginParam.Username, loginParam.Password)
 
 	if err == nil {
-		token, _ := ulti.CreateJwt(user)
+		token, _ := util.CreateJwt(user)
 		loginResponse := LoginResponse{
 			Username: user.Username,
 			Email:    user.Email,
@@ -58,20 +58,20 @@ func UserLogin(w http.ResponseWriter, r *http.Request) {
 			Image:    user.Image,
 			Token:    token,
 		}
-		ulti.SendResponseData(w, loginResponse)
+		util.SendResponseData(w, loginResponse)
 		return
 	} else {
-		err := ulti.ResponseError{
+		err := util.ResponseError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Username or Password invalid!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 		log.Println(err)
 		return
 	}
 }
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func (c Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("Endpoint Hit: Creating New User")
 
@@ -82,68 +82,68 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Validate data
 	if err != nil {
-		err := ulti.ResponseError{
+		err := util.ResponseError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    "Invalid Format!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 		log.Println(err)
 		return
 	}
 
 	if user.Username == "" || user.PasswordHash == "" || user.Email == "" {
-		err := ulti.ResponseError{
+		err := util.ResponseError{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    "Username, Password and Email can't be blank!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 		return
 	}
 
-	if models.CheckUserExist(user.Username) {
-		err := ulti.ResponseError{
+	if c.DB.CheckUserExist(user.Username) {
+		err := util.ResponseError{
 			StatusCode: http.StatusUnprocessableEntity,
 			Message:    "Username already exists!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 	} else {
-		models.CreateUser(&user)
-		err := ulti.ResponseError{
+		c.DB.CreateUser(&user)
+		err := util.ResponseError{
 			StatusCode: http.StatusOK,
 			Message:    "Register Successfully!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 	}
 }
 
-func ListUser(w http.ResponseWriter, r *http.Request) {
+func (c Controller) ListUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("Endpoint Hit: Get List User")
 
-	user := models.ListUser()
+	user := c.DB.ListUser()
 
 	json.NewEncoder(w).Encode(user)
 }
 
-func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+func (c Controller) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Contend-Type", "application/json")
 	fmt.Println("Endpoint Hit: Get Current User")
 
-	username, errJwt := ulti.CheckJwt(r)
+	username, errJwt := util.CheckJwt(r)
 
 	if errJwt != nil {
-		err := ulti.ResponseError{
+		err := util.ResponseError{
 			StatusCode: 401,
 			Message:    "Unauthorized requests!",
 		}
-		ulti.SendResponseError(w, err)
+		util.SendResponseError(w, err)
 		return
 	}
 
-	user, _ := models.FindUserByUsername(username)
+	user, _ := c.DB.FindUserByUsername(username)
 
 	// Reset Token Exp
-	token, _ := ulti.CreateJwt(user)
+	token, _ := util.CreateJwt(user)
 	loginResponse := LoginResponse{
 		Username: user.Username,
 		Email:    user.Email,
@@ -151,5 +151,16 @@ func GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 		Image:    user.Image,
 		Token:    token,
 	}
-	ulti.SendResponseData(w, loginResponse)
+	util.SendResponseData(w, loginResponse)
+}
+
+func (c Controller) CheckLogin(username, password string) (models.User, error) {
+	var user models.User
+	c.DB.Where("username = ?", username).First(&user)
+
+	err := models.CheckPasswordHash(user.PasswordHash, password)
+
+	log.Println(user)
+
+	return user, err
 }

@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"golang.org/x/crypto/bcrypt"
-
-	"go-article/databases"
 )
 
 type User struct {
@@ -37,7 +35,7 @@ func Santize(data string) string {
 	return data
 }
 
-func CreateUser(user *User) {
+func (db *DB) CreateUser(user *User) {
 	// Trim & Santize string
 	user.Username = Santize(user.Username)
 	user.Email = Santize(user.Email)
@@ -45,25 +43,30 @@ func CreateUser(user *User) {
 	user.PasswordHash, _ = Hash(Santize(user.PasswordHash))
 
 	// Save User
-	DB := db.ConnectDB()
-	DB.Create(&user)
+	db.Create(&user)
 
 	log.Print(user)
 }
 
-func FindUserByUsername(username string) (User, error) {
+func (db *DB) FindUserByUsername(username string) (User, error) {
 	var user User
 
-	DB := db.ConnectDB()
-	err := DB.Where("username = ?", username).First(&user).Error
+	err := db.Where("username = ?", username).First(&user).Error
 
 	return user, err
 }
 
-func CheckUserExist(username string) bool {
-	DB := db.ConnectDB()
+func (db *DB) FindUserById(id uint) (User, error) {
+	var user User
+
+	err := db.Table("user_models").Where("id = ?", id).First(&user).Error
+
+	return user, err
+}
+
+func (db *DB) CheckUserExist(username string) bool {
 	var users []User
-	DB.Table("user_models").Where("username = ? ", username).Find(&users)
+	db.Table("user_models").Where("username = ? ", username).Find(&users)
 
 	if len(users) > 0 {
 		return true
@@ -72,10 +75,9 @@ func CheckUserExist(username string) bool {
 	}
 }
 
-func ListUser() *[]User {
-	DB := db.ConnectDB()
+func (db *DB) ListUser() *[]User {
 	var user []User
-	DB.Table("user_models").Find(&user)
+	db.Table("user_models").Find(&user)
 
 	return &user
 }

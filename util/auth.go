@@ -1,4 +1,4 @@
-package ulti
+package util
 
 import (
 	"fmt"
@@ -10,15 +10,17 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 
-	db "go-article/databases"
 	"go-article/models"
 )
 
-func CheckLogin(username, password string) (models.User, error) {
-	DB := db.ConnectDB()
+type Util struct {
+	DB *models.DB
+}
+
+func (u Util) CheckLogin(username, password string) (models.User, error) {
 
 	var user models.User
-	DB.Where("username = ?", username).First(&user)
+	u.DB.Where("username = ?", username).First(&user)
 
 	err := models.CheckPasswordHash(user.PasswordHash, password)
 

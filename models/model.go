@@ -1,9 +1,10 @@
-package databases
+package models
 
 import (
+	"log"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"log"
 )
 
 type DB struct {
