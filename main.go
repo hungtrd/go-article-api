@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
 	"go-article/controllers"
@@ -19,14 +20,20 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 func handleRequests(c controllers.Controller) {
 	log.Println("Starting development server at http://127.0.0.1:5000/")
 	log.Println("Quit the server with CONTROL-C.")
+
+	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+
 	// creates a new instance of a mux router
 	myRouter := mux.NewRouter().StrictSlash(true)
 
 	// Route
-	myRouter.HandleFunc("/", homePage)
+	myRouter.HandleFunc("/api", homePage)
 
 	// User
 	myRouter.HandleFunc("/api/users/login", c.UserLogin).Methods("POST")
+
 	myRouter.HandleFunc("/api/users", c.CreateUser).Methods("POST")
 	myRouter.HandleFunc("/api/users", c.ListUser).Methods("GET")
 	// Get Current User
@@ -35,8 +42,11 @@ func handleRequests(c controllers.Controller) {
 	// Article
 	myRouter.HandleFunc("/api/articles", c.CreateArticle).Methods("POST")
 	myRouter.HandleFunc("/api/articles", c.GetListArticle).Methods("GET")
+	myRouter.HandleFunc("/api/articles/detail", c.GetArticle).Methods("GET")
+	myRouter.HandleFunc("/api/articles/update", c.UpdateArticle).Methods("PUT")
+	myRouter.HandleFunc("/api/articles/delete", c.DeleteArticle).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":5000", myRouter))
+	log.Fatal(http.ListenAndServe(":5000", handlers.CORS(originsOk, headersOk, methodsOk)(myRouter)))
 }
 
 func main() {

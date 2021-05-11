@@ -17,10 +17,10 @@ type Util struct {
 	DB *models.DB
 }
 
-func (u Util) CheckLogin(username, password string) (models.User, error) {
+func (u Util) CheckLogin(email, password string) (models.User, error) {
 
 	var user models.User
-	u.DB.Where("username = ?", username).First(&user)
+	u.DB.Where("email = ?", email).First(&user)
 
 	err := models.CheckPasswordHash(user.PasswordHash, password)
 

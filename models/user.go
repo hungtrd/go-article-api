@@ -56,6 +56,14 @@ func (db *DB) FindUserByUsername(username string) (User, error) {
 	return user, err
 }
 
+func (db *DB) FindUserByEmail(email string) (User, error) {
+	var user User
+
+	err := db.Where("email = ?", email).First(&user).Error
+
+	return user, err
+}
+
 func (db *DB) FindUserById(id uint) (User, error) {
 	var user User
 

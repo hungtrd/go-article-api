@@ -11,7 +11,7 @@ import (
 )
 
 type LoginRequest struct {
-	Username string `json:"username"`
+	Email string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -37,17 +37,17 @@ func (c Controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if loginParam.Username == "" || loginParam.Password == "" {
+	if loginParam.Email == "" || loginParam.Password == "" {
 		err := util.ResponseError{
 			StatusCode: 411,
-			Message:    "Username and Password can't be blank!",
+			Message:    "Email and Password can't be blank!",
 		}
 		util.SendResponseError(w, err)
 		log.Println("Error: ", err)
 		return
 	}
 
-	user, err := c.CheckLogin(loginParam.Username, loginParam.Password)
+	user, err := c.CheckLogin(loginParam.Email, loginParam.Password)
 
 	if err == nil {
 		token, _ := util.CreateJwt(user)
@@ -63,7 +63,7 @@ func (c Controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 	} else {
 		err := util.ResponseError{
 			StatusCode: http.StatusInternalServerError,
-			Message:    "Username or Password invalid!",
+			Message:    "Email or Password invalid!",
 		}
 		util.SendResponseError(w, err)
 		log.Println(err)
@@ -72,7 +72,6 @@ func (c Controller) UserLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("Endpoint Hit: Creating New User")
 
 	var user models.User
@@ -80,6 +79,7 @@ func (c Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// Parse data
 	err := json.NewDecoder(r.Body).Decode(&user)
 
+  log.Println(user)
 	// Validate data
 	if err != nil {
 		err := util.ResponseError{
@@ -117,8 +117,9 @@ func (c Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) ListUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	fmt.Println("Endpoint Hit: Get List User")
+
+	w.Header().Set("Content-Type", "application/json")
 
 	user := c.DB.ListUser()
 
@@ -126,8 +127,9 @@ func (c Controller) ListUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Contend-Type", "application/json")
 	fmt.Println("Endpoint Hit: Get Current User")
+
+	w.Header().Set("Contend-Type", "application/json")
 
 	username, errJwt := util.CheckJwt(r)
 
@@ -154,9 +156,9 @@ func (c Controller) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	util.SendResponseData(w, loginResponse)
 }
 
-func (c Controller) CheckLogin(username, password string) (models.User, error) {
+func (c Controller) CheckLogin(email, password string) (models.User, error) {
 	var user models.User
-	c.DB.Where("username = ?", username).First(&user)
+	c.DB.Where("email = ?", email).First(&user)
 
 	err := models.CheckPasswordHash(user.PasswordHash, password)
 

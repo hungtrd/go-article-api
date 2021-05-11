@@ -13,7 +13,7 @@ type DB struct {
 
 func ConnectDB() (*DB, error) {
 
-	db, err := gorm.Open("mysql", "root:hungtran97@tcp(127.0.0.1:3307)/go_article?charset=utf8&parseTime=True")
+	db, err := gorm.Open("mysql", "root:hungtran97@tcp(127.0.0.1:3306)/go_article?charset=utf8&parseTime=True")
 
 	if err != nil {
 		log.Println("Connection Failed")
